@@ -1,6 +1,7 @@
 """Alembic environment configuration."""
 
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -12,6 +13,9 @@ from sleep.domain.orm import Base
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+if db_url := os.environ.get("SH_DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", db_url)
 
 target_metadata = Base.metadata
 

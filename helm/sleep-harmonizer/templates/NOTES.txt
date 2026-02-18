@@ -1,0 +1,14 @@
+{{- $svcName := include "sleep-harmonizer.fullname" . -}}
+1. Get the application URL:
+{{- if .Values.ingress.enabled }}
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ (index .Values.ingress.hosts 0).host }}
+{{- else }}
+  kubectl port-forward svc/{{ $svcName }} 8000:{{ .Values.service.port }}
+  http://localhost:8000/docs
+{{- end }}
+
+2. Check health:
+  curl http://localhost:8000/health
+
+3. Run tests:
+  helm test {{ .Release.Name }}

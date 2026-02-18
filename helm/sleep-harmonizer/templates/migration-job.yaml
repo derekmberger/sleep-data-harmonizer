@@ -1,0 +1,2 @@
+{{/* Migration is handled by an initContainer on the deployment. */}}
+{{/* This file is intentionally empty. See deployment.yaml. */}}

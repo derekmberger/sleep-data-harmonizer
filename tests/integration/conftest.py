@@ -5,6 +5,7 @@ Run with: pytest tests/integration -v
 """
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from sleep.domain.orm import Base
@@ -45,3 +46,35 @@ async def db_session(async_engine) -> AsyncSession:
     session_factory = async_sessionmaker(async_engine, expire_on_commit=False)
     async with session_factory() as session:
         yield session
+
+
+@pytest.fixture
+async def api_client(pg_url):
+    """httpx.AsyncClient wired to the real FastAPI app with a real Postgres session.
+
+    Overrides get_session so all request handling uses the testcontainers DB.
+    Schema is created before the test and dropped after.
+    """
+    from main import app
+    from shared.database import get_session
+
+    engine = create_async_engine(pg_url, echo=False)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async def _override_get_session():
+        async with session_factory() as session:
+            yield session
+
+    app.dependency_overrides[get_session] = _override_get_session
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+    app.dependency_overrides.clear()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
