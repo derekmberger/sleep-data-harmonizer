@@ -1,0 +1,76 @@
+{
+  "data": [
+    {
+      "id": "8f9a5221-639e-4a85-81cb-4065ef23f979",
+      "average_breath": 14.5,
+      "average_heart_rate": 52.375,
+      "average_hrv": 42,
+      "awake_time": 2340,
+      "bedtime_end": "2024-03-15T07:02:30-05:00",
+      "bedtime_start": "2024-03-14T23:14:00-05:00",
+      "day": "2024-03-14",
+      "deep_sleep_duration": 5160,
+      "efficiency": 88,
+      "heart_rate": {
+        "interval": 300,
+        "items": [null, 54, 52, 50, 49, 48],
+        "timestamp": "2024-03-14T23:14:00.000-05:00"
+      },
+      "hrv": {
+        "interval": 300,
+        "items": [null, 38, 42, 45, 48, 50],
+        "timestamp": "2024-03-14T23:14:00.000-05:00"
+      },
+      "latency": 480,
+      "light_sleep_duration": 15600,
+      "low_battery_alert": false,
+      "lowest_heart_rate": 47,
+      "movement_30_sec": "11121111221112",
+      "period": 0,
+      "readiness": {
+        "contributors": {
+          "activity_balance": 80,
+          "body_temperature": 90,
+          "hrv_balance": 75,
+          "previous_day_activity": null,
+          "previous_night": 85,
+          "recovery_index": 92,
+          "resting_heart_rate": 88,
+          "sleep_balance": 78,
+          "sleep_regularity": null
+        },
+        "score": 82,
+        "temperature_deviation": -0.12,
+        "temperature_trend_deviation": 0.05
+      },
+      "readiness_score_delta": 0,
+      "rem_sleep_duration": 5400,
+      "restless_periods": 32,
+      "sleep_phase_5_min": "44411111122233332222111133344442222111133322221111333222211114",
+      "sleep_algorithm_version": "v2",
+      "sleep_analysis_reason": "foreground_sleep_analysis",
+      "sleep_score_delta": 0,
+      "time_in_bed": 28350,
+      "total_sleep_duration": 26010,
+      "type": "long_sleep"
+    },
+    {
+      "id": "rest-record-should-be-filtered",
+      "day": "2024-03-14",
+      "type": "rest",
+      "period": 0,
+      "total_sleep_duration": 1200,
+      "deep_sleep_duration": 0,
+      "light_sleep_duration": 600,
+      "rem_sleep_duration": 0,
+      "awake_time": 600,
+      "efficiency": 50,
+      "bedtime_start": "2024-03-14T14:00:00-05:00",
+      "bedtime_end": "2024-03-14T14:20:00-05:00",
+      "time_in_bed": 1200,
+      "latency": 60,
+      "sleep_algorithm_version": "v2"
+    }
+  ],
+  "next_token": null
+}

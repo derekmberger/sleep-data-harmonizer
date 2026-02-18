@@ -1,0 +1,43 @@
+{
+  "source": "oura",
+  "source_record_id": "8f9a5221-639e-4a85-81cb-4065ef23f979",
+  "effective_date": "2024-03-14",
+  "total_sleep_minutes": 433,
+  "deep_sleep_minutes": 86,
+  "light_sleep_minutes": 260,
+  "rem_sleep_minutes": 90,
+  "awake_minutes": 39,
+  "sleep_efficiency": 0.88,
+  "extra": {
+    "time_in_bed_minutes": 472,
+    "latency_minutes": 8,
+    "avg_hr_bpm": 52.375,
+    "avg_hrv_ms": 42,
+    "avg_breath_rate": 14.5,
+    "lowest_hr_bpm": 47,
+    "restless_periods": 32,
+    "sleep_type": "long_sleep",
+    "sleep_phase_5_min": "44411111122233332222111133344442222111133322221111333222211114",
+    "movement_30_sec": "11121111221112",
+    "readiness": {
+      "contributors": {
+        "activity_balance": 80,
+        "body_temperature": 90,
+        "hrv_balance": 75,
+        "previous_day_activity": null,
+        "previous_night": 85,
+        "recovery_index": 92,
+        "resting_heart_rate": 88,
+        "sleep_balance": 78,
+        "sleep_regularity": null
+      },
+      "score": 82,
+      "temperature_deviation": -0.12,
+      "temperature_trend_deviation": 0.05
+    },
+    "readiness_score_delta": 0,
+    "sleep_score_delta": 0,
+    "sleep_algorithm_version": "v2",
+    "sleep_analysis_reason": "foreground_sleep_analysis"
+  }
+}

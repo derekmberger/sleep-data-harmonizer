@@ -1,0 +1,50 @@
+{
+  "status": 0,
+  "body": {
+    "series": [
+      {
+        "id": 987654321,
+        "timezone": "America/Chicago",
+        "model": 32,
+        "model_id": 32,
+        "hash_deviceid": "a0b1c2d3e4f5",
+        "startdate": 1710468840,
+        "enddate": 1710496950,
+        "date": "2024-03-14",
+        "created": 1710497100,
+        "modified": 1710497100,
+        "data": {
+          "breathing_disturbances_intensity": 12,
+          "deepsleepduration": 5280,
+          "durationtosleep": 540,
+          "durationtowakeup": 360,
+          "hr_average": 54,
+          "hr_max": 72,
+          "hr_min": 46,
+          "lightsleepduration": 14400,
+          "nb_rem_episodes": 4,
+          "out_of_bed_count": 1,
+          "remsleepduration": 5760,
+          "rr_average": 15,
+          "rr_max": 19,
+          "rr_min": 12,
+          "sleep_efficiency": 0.91,
+          "sleep_latency": 480,
+          "sleep_score": 78,
+          "snoring": 1200,
+          "snoringepisodecount": 3,
+          "total_sleep_time": 25440,
+          "total_timeinbed": 28110,
+          "asleepduration": 25440,
+          "wakeup_latency": 300,
+          "wakeupcount": 3,
+          "wakeupduration": 1860,
+          "waso": 1380,
+          "night_events": "[{\"type\":1,\"startdate\":1710482400,\"enddate\":1710483000}]"
+        }
+      }
+    ],
+    "more": false,
+    "offset": 0
+  }
+}
