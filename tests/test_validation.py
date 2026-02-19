@@ -8,7 +8,7 @@ from sleep.domain.validation import validate_sleep_record
 
 
 @pytest.mark.parametrize(
-    "overrides, expected_reason",
+    ("overrides", "expected_reason"),
     [
         # Rule 1: Required effective_date
         ({"effective_date": None}, "missing_effective_date"),
@@ -98,7 +98,7 @@ def test_multiple_violations_reported():
 
 
 @pytest.mark.parametrize(
-    "total,deep,light,rem,awake",
+    ("total", "deep", "light", "rem", "awake"),
     [
         (480, 90, 210, 120, 60),  # exact sum = total
         (480, 90, 210, 120, 80),  # sum=500, 500 <= 480*1.05=504 (within tolerance)

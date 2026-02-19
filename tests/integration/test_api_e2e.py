@@ -8,7 +8,6 @@ Requires Docker to be running (testcontainers).
 
 from uuid import uuid4
 
-import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -90,7 +89,6 @@ def _idem_key() -> str:
 # ── Ingest tests ─────────────────────────────────────────────────
 
 
-@pytest.mark.asyncio
 async def test_ingest_oura_creates_record(api_client):
     pid = str(uuid4())
     resp = await api_client.post(
@@ -105,7 +103,6 @@ async def test_ingest_oura_creates_record(api_client):
     assert body["meta"]["api_version"] == "v1"
 
 
-@pytest.mark.asyncio
 async def test_ingest_withings_creates_record(api_client):
     pid = str(uuid4())
     resp = await api_client.post(
@@ -119,7 +116,6 @@ async def test_ingest_withings_creates_record(api_client):
     assert body["data"]["sleep_day_id"] is not None
 
 
-@pytest.mark.asyncio
 async def test_ingest_idempotency_replay(api_client):
     pid = str(uuid4())
     key = _idem_key()
@@ -142,7 +138,6 @@ async def test_ingest_idempotency_replay(api_client):
     assert resp2.json()["data"] == resp1.json()["data"]
 
 
-@pytest.mark.asyncio
 async def test_ingest_idempotency_conflict(api_client):
     pid = str(uuid4())
     key = _idem_key()
@@ -168,7 +163,6 @@ async def test_ingest_idempotency_conflict(api_client):
 # ── Quarantine ───────────────────────────────────────────────────
 
 
-@pytest.mark.asyncio
 async def test_ingest_quarantine_future_date(api_client):
     pid = str(uuid4())
     resp = await api_client.post(
@@ -189,7 +183,6 @@ async def test_ingest_quarantine_future_date(api_client):
 # ── Bronze-layer persistence ────────────────────────────────────
 
 
-@pytest.mark.asyncio
 async def test_ingest_raw_response_stored(api_client, pg_url):
     pid = str(uuid4())
     resp = await api_client.post(
@@ -220,7 +213,6 @@ async def test_ingest_raw_response_stored(api_client, pg_url):
 # ── Read endpoints ──────────────────────────────────────────────
 
 
-@pytest.mark.asyncio
 async def test_timeline_read_after_write(api_client):
     pid = str(uuid4())
     await api_client.post(
@@ -250,7 +242,6 @@ async def test_timeline_read_after_write(api_client):
     assert "pagination" in body
 
 
-@pytest.mark.asyncio
 async def test_timeline_date_range_filter(api_client):
     pid = str(uuid4())
 
@@ -278,7 +269,6 @@ async def test_timeline_date_range_filter(api_client):
     assert data[0]["effective_date"] == "2024-03-14"
 
 
-@pytest.mark.asyncio
 async def test_timeline_cursor_pagination(api_client):
     pid = str(uuid4())
 
@@ -355,7 +345,6 @@ async def test_timeline_cursor_pagination(api_client):
     assert len(set(dates)) == 3
 
 
-@pytest.mark.asyncio
 async def test_summary_aggregation(api_client):
     pid = str(uuid4())
 
@@ -382,7 +371,6 @@ async def test_summary_aggregation(api_client):
     assert set(data["sources"]) == {"oura", "withings"}
 
 
-@pytest.mark.asyncio
 async def test_provenance_read_after_write(api_client):
     pid = str(uuid4())
     await api_client.post(
@@ -407,7 +395,6 @@ async def test_provenance_read_after_write(api_client):
 # ── Error contracts ─────────────────────────────────────────────
 
 
-@pytest.mark.asyncio
 async def test_error_contracts_rfc9457(api_client):
     pid = str(uuid4())
     rfc9457_fields = {"type", "title", "status", "detail", "instance"}

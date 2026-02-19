@@ -5,15 +5,14 @@ testing the API layer in isolation from the actual database.
 """
 
 from unittest.mock import AsyncMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
 from main import app
 from shared.database import get_session
-
-PATIENT_ID = UUID("a1b2c3d4-5678-90ab-cdef-1234567890ab")
+from tests.conftest import PATIENT_ID
 
 
 @pytest.fixture

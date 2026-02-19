@@ -4,15 +4,14 @@ import json
 from datetime import UTC, date
 from pathlib import Path
 from unittest.mock import patch
-from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sleep.adapters.factory import get_adapter
 from sleep.adapters.oura_mapper import OuraMapper
 from sleep.adapters.withings_mapper import WithingsMapper
 from sleep.domain.models import SleepSource
+from tests.conftest import PATIENT_ID
 
-PATIENT_ID = UUID("a1b2c3d4-5678-90ab-cdef-1234567890ab")
 GOLDEN_DIR = Path(__file__).parent / "fixtures" / "golden"
 
 

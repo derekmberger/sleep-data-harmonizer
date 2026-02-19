@@ -1,11 +1,9 @@
 """Tests for domain models: SleepDay, fingerprint, efficiency normalization."""
 
 from datetime import UTC, date, datetime
-from uuid import UUID
 
 from sleep.domain.models import SleepDay, SleepSource
-
-PATIENT_ID = UUID("a1b2c3d4-5678-90ab-cdef-1234567890ab")
+from tests.conftest import PATIENT_ID
 
 
 class TestFingerprint:

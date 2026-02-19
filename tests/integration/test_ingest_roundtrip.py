@@ -7,8 +7,6 @@ confirming the record appears in the read path with correct data.
 from datetime import date
 from uuid import uuid4
 
-import pytest
-
 from sleep.pipeline import ingest_sleep_data
 from sleep.repository import SleepDayRepository
 
@@ -36,7 +34,6 @@ VALID_OURA_PAYLOAD = {
 }
 
 
-@pytest.mark.asyncio
 async def test_ingest_then_timeline_roundtrip(db_session):
     """Ingest a valid payload, then read it back via timeline query."""
     result = await ingest_sleep_data(db_session, "oura", VALID_OURA_PAYLOAD, PATIENT_ID)
@@ -45,7 +42,7 @@ async def test_ingest_then_timeline_roundtrip(db_session):
 
     # Query timeline
     repo = SleepDayRepository(db_session)
-    rows, next_cursor = await repo.get_timeline(patient_id=PATIENT_ID, limit=25)
+    rows, _next_cursor = await repo.get_timeline(patient_id=PATIENT_ID, limit=25)
 
     assert len(rows) == 1
     row = rows[0]
@@ -56,7 +53,6 @@ async def test_ingest_then_timeline_roundtrip(db_session):
     assert row.fingerprint is not None
 
 
-@pytest.mark.asyncio
 async def test_ingest_idempotent_replay(db_session):
     """Ingesting the same payload twice should produce dedup, not duplicates."""
     result1 = await ingest_sleep_data(db_session, "oura", VALID_OURA_PAYLOAD, PATIENT_ID)

@@ -39,7 +39,6 @@ def canonical_record():
     }
 
 
-@pytest.mark.asyncio
 async def test_upsert_same_record_twice_yields_one_row(db_session, canonical_record):
     """Upserting the same fingerprint twice should result in exactly one row."""
     repo = SleepDayRepository(db_session)
@@ -77,7 +76,6 @@ async def test_upsert_same_record_twice_yields_one_row(db_session, canonical_rec
     assert row.total_sleep_minutes == 440  # updated value
 
 
-@pytest.mark.asyncio
 async def test_different_fingerprints_yield_separate_rows(db_session, canonical_record):
     """Records with different fingerprints should create separate rows."""
     repo = SleepDayRepository(db_session)
