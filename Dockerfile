@@ -26,10 +26,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH" \
     PYTHONPATH=/app
 
+LABEL org.opencontainers.image.title="sleep-harmonizer" \
+      org.opencontainers.image.description="Sleep Data Harmonizer — Oura + Withings wearable ingestion API" \
+      org.opencontainers.image.source="https://github.com/derekmberger/sleep-data-harmonizer"
+
 COPY --from=builder /app /app
 
 RUN groupadd -g 1000 appuser && \
-    useradd -r -u 1000 -g appuser appuser && \
+    useradd --no-log-init -r -u 1000 -g appuser appuser && \
     chown -R appuser:appuser /app
 USER appuser
 

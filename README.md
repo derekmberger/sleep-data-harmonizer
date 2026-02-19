@@ -8,7 +8,7 @@ Ingests sleep data from wearable devices (Oura Ring, Withings), normalizes it in
 
 ## Architecture
 
-The system follows hexagonal architecture (ports and adapters) within a single bounded context around the sleep domain.
+The system follows a hexagonal architecture (ports and adapters) within a single bounded context around the sleep domain.
 
 ```
               ┌──────────────────────────┐
@@ -52,7 +52,7 @@ Vendor-specific fields (Oura's `movement_30_sec`, Withings' `snoring`, etc.) are
 
 ### Nullable strategy
 
-`NULL` means "vendor did not provide this value", never "zero". Identity and provenance fields (`id`, `patient_id`, `source`, `source_record_id`, `fingerprint`, `raw_payload`, `effective_date`) are NOT NULL. All sleep metrics are nullable.
+In this model, absence does not mean zero. When a vendor omits a value, it is stored as `NULL` in the database, indicating that the value is unknown or missing — never that it is zero. This distinction is important: for example, a `NULL` sleep duration means the vendor did not send a duration at all, while a value of `0` would indicate a real measurement. Identity and provenance fields (`id`, `patient_id`, `source`, `source_record_id`, `fingerprint`, `raw_payload`, `effective_date`) are NOT NULL. All sleep metrics are nullable.
 
 ### Tables
 
@@ -73,7 +73,24 @@ Raw Payload → Mapper (ACL) → Validate (9 rules) → Upsert (ON CONFLICT)
                               Quarantine Table
 ```
 
-**Two-layer validation:** Layer 1 is implicit in the mapper (vendor-specific parsing failures). Layer 2 is a shared set of 9 canonical rules applied after mapping: required effective_date, sleep duration range [0, 1440], non-negative stages, stage sum consistency (5% tolerance), no future dates, efficiency range [0.0, 1.0], timezone on timestamps, known source, and sleep window ordering.
+**Two-layer validation:** Layer 1 is implicit in the mapper (vendor-specific parsing failures). Layer 2 is a shared set of 9 canonical rules applied after mapping, grouped by purpose:
+
+**Temporal validations:**
+- Required effective_date
+- No future dates
+- Timezone must be present on timestamps
+- Sleep window ordering (sleep start precedes end)
+
+**Range validations:**
+- Sleep duration range [0, 1440] (minutes)
+- Efficiency range [0.0, 1.0]
+- All stage values non-negative
+
+**Consistency validations:**
+- Sum of sleep stages must be within 5% tolerance of total duration
+- Known source required
+
+Clustering the rules into these categories simplifies implementation and makes the logic easier to recall later.
 
 **Two-layer idempotency:**
 
@@ -82,13 +99,15 @@ Raw Payload → Mapper (ACL) → Validate (9 rules) → Upsert (ON CONFLICT)
 | Data (authoritative) | `fingerprint = sha256(source:source_record_id:effective_date)` with UNIQUE constraint + upsert | All ingestion paths |
 | Transport (optimization) | `Idempotency-Key` HTTP header, stored with TTL | POST ingest endpoint only |
 
-The fingerprint is the authoritative dedup mechanism — it works for HTTP, polling, batch, and replay. The Idempotency-Key short-circuits before the pipeline runs on client retries.
+The fingerprint is the authoritative dedup mechanism — it works for HTTP, polling, batch, and replay. The Idempotency-Key short-circuits client retries before the pipeline runs.
 
 **Replay** is free: read from `raw_vendor_responses`, run through the same pipeline, upsert handles the rest. No special replay mode needed.
 
 ---
 
 ## API
+
+The API is designed primarily for consumption by downstream healthcare applications, research data pipelines, and mobile apps integrating sleep data from wearables. This audience influences choices like pagination, error formats, and response structures.
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -128,7 +147,7 @@ HTTP 201 if at least one record was created; HTTP 200 if all records were dedupl
 
 ## FHIR R4 Output
 
-An outbound serializer converts `SleepDay` into FHIR R4 Observation resources with LOINC-coded components. FHIR is an output format — the canonical model remains the internal source of truth.
+FHIR was chosen over proprietary JSON to align with healthcare interoperability standards, ensure regulatory compliance, and support a broad ecosystem of client tools and integrations. An outbound serializer converts `SleepDay` into FHIR R4 Observation resources with LOINC-coded components. FHIR is an output format; the canonical model remains the internal source of truth.
 
 | LOINC Code | Display | Canonical Field |
 |------------|---------|-----------------|
@@ -137,23 +156,33 @@ An outbound serializer converts `SleepDay` into FHIR R4 Observation resources wi
 | 93830-8 | Light sleep duration | `light_sleep_minutes` |
 | 93829-0 | REM sleep duration | `rem_sleep_minutes` |
 
-Sleep efficiency and awake minutes use text-only codes (no standard LOINC exists). Observation category is `activity` (wearable-generated wellness data).
+Sleep efficiency and awake minutes use text-only codes (no standard LOINC exists). Observation category is `activity` (wearable-generated wellness data). Each Observation includes `meta.lastUpdated`, `issued`, and `identifier` elements for versioning and cross-system correlation.
+
+### Integration scope
+
+The serializer produces structurally valid FHIR R4 Observations suitable for submission to a FHIR server (HAPI, Azure Health Data Services, Google Cloud Healthcare API).
+
+**Current scope:** The only responsibility of this serializer is to produce spec-compliant FHIR R4 Observation resources. The canonical `SleepDay` model remains the internal source of truth.
+
+**Out-of-scope for this repo:** Production EHR integration features such as SMART on FHIR authentication, patient identity resolution (mapping internal IDs to MRN/MPI), US Core profile conformance, Bundle transaction support, and generation of Provenance resources are not included here. These concerns belong to a future integration layer outside the boundaries of this codebase. Making this separation explicit reduces ambiguity and helps prevent maintenance debates about what the harmonizer is (and is not) responsible for.
 
 ---
 
 ## Key Decisions
 
-| ADR | Decision | Tradeoff |
-|-----|----------|----------|
-| 001 | Intersection-first canonical model with JSONB `extra` | Stable schema + no data loss, but `extra` fields lack type enforcement |
-| 002 | Two-layer idempotency: fingerprint for data dedup + Idempotency-Key for transport | Retry-safe on any ingestion path, but can't distinguish re-delivery from correction at the dedup layer |
-| 003 | Separate quarantine table (not inline flag) | Zero risk of bad data in API responses, but two tables to manage |
-| 004 | Protocol interface for fixture/live adapter swap | Deterministic tests + demo mode without credentials, but fixtures can drift from real API |
-| 005 | Cursor pagination + RFC 9457 errors | Stable and performant pagination, but no "jump to page N" |
+| Decision | Tradeoff |
+|----------|----------|
+| Intersection-first canonical model with JSONB `extra` | Stable schema + no data loss, but `extra` fields lack type enforcement |
+| Two-layer idempotency: fingerprint for data dedup + Idempotency-Key for transport | Retry-safe on any ingestion path, but can't distinguish re-delivery from correction at the dedup layer |
+| Separate quarantine table (not inline flag) | Zero risk of bad data in API responses, but two tables to manage |
+| Protocol interface for fixture/live adapter swap | Deterministic tests + demo mode without credentials, but fixtures can drift from real API |
+| Cursor pagination + RFC 9457 errors | Stable and performant pagination, but no "jump to page N" |
 
 ---
 
 ## Project Structure
+
+The main application code lives under the `sleep` directory, while `shared` contains cross-cutting utilities used across modules.
 
 ```
 main.py                          # FastAPI application entry point
@@ -233,7 +262,7 @@ createdb sleep_harmonizer
 uv run alembic upgrade head
 ```
 
-The migration creates all 4 tables, indexes, check constraints, and an `updated_at` trigger. Connection string defaults to `postgresql+asyncpg://postgres:postgres@localhost:5432/sleep_harmonizer` and can be overridden with `SH_DATABASE_URL`.
+The migration creates all 4 tables, indexes, check constraints, and an `updated_at` trigger. The connection string defaults to `postgresql+asyncpg://postgres:postgres@localhost:5432/sleep_harmonizer` and can be overridden by `SH_DATABASE_URL`.
 
 ### Running
 
@@ -249,6 +278,30 @@ The system runs in two modes controlled by `SH_ADAPTER_MODE`:
 
 - **`fixture`** (default): Adapters parse raw payloads passed directly. No vendor API credentials needed. Use for development and testing.
 - **`live`**: Adapters fetch from vendor APIs before parsing. Requires `SH_OURA_ACCESS_TOKEN` and `SH_WITHINGS_ACCESS_TOKEN`.
+
+---
+
+## Deployment
+
+### Docker Compose
+
+```bash
+docker compose up --build -d    # start postgres + migrate + app
+curl http://localhost:8000/health
+docker compose down              # tear down
+```
+
+### Kubernetes (Helm)
+
+```bash
+docker build -t sleep-harmonizer:latest .
+helm dependency update helm/sleep-harmonizer
+helm install sleep-dev helm/sleep-harmonizer \
+  --set image.tag=latest --set image.pullPolicy=Never
+kubectl port-forward svc/sleep-dev-sleep-harmonizer 8000:80
+```
+
+The Helm chart includes: init container migrations, health probes (startup/liveness/readiness), Prometheus scrape annotations, HPA, PDB, NetworkPolicy, and non-root security context. See `helm/sleep-harmonizer/values.yaml` for all configurable values.
 
 ---
 

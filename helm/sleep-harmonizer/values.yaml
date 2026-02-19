@@ -1,40 +1,62 @@
+# replicaCount -- number of application pod replicas
 replicaCount: 1
 
 image:
+  # image.repository -- container image name
   repository: sleep-harmonizer
+  # image.tag -- container image tag (defaults to Chart.appVersion)
   tag: ""
+  # image.pullPolicy -- Kubernetes image pull policy
   pullPolicy: IfNotPresent
 
+# imagePullSecrets -- registry credentials for pulling private images
+imagePullSecrets: []
+
 env:
+  # env.adapterMode -- adapter mode: "fixture" (no vendor creds) or "live"
   adapterMode: fixture
 
+# existingSecret -- name of a pre-existing Secret to use instead of the chart-managed one
 existingSecret: ""
 
 postgresql:
+  # postgresql.enabled -- deploy a PostgreSQL subchart instance
   enabled: true
   auth:
+    # postgresql.auth.database -- database name to create
     database: sleep_harmonizer
+    # postgresql.auth.username -- database user
     username: postgres
+    # postgresql.auth.password -- database password (use existingSecret in production)
     password: postgres
 
 migration:
+  # migration.enabled -- run Alembic migrations as an init container before the app starts
   enabled: true
 
 service:
+  # service.type -- Kubernetes Service type
   type: ClusterIP
+  # service.port -- Service port exposed to the cluster
   port: 80
 
 ingress:
+  # ingress.enabled -- create an Ingress resource
   enabled: false
+  # ingress.className -- Ingress class name
   className: ""
+  # ingress.annotations -- additional Ingress annotations
   annotations: {}
+  # ingress.hosts -- list of Ingress host rules
   hosts:
     - host: sleep-harmonizer.local
       paths:
         - path: /
           pathType: Prefix
+  # ingress.tls -- TLS configuration for Ingress hosts
   tls: []
 
+# resources -- CPU/memory requests and limits
 resources:
   requests:
     cpu: 100m
@@ -43,10 +65,15 @@ resources:
     memory: 128Mi
 
 autoscaling:
+  # autoscaling.enabled -- create a HorizontalPodAutoscaler
   enabled: false
+  # autoscaling.minReplicas -- minimum replica count
   minReplicas: 1
+  # autoscaling.maxReplicas -- maximum replica count
   maxReplicas: 4
+  # autoscaling.targetCPUUtilization -- target CPU utilization percentage
   targetCPUUtilization: 80
+  # autoscaling.behavior -- HPA scaling behavior policy
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
@@ -56,16 +83,21 @@ autoscaling:
           periodSeconds: 60
 
 podDisruptionBudget:
+  # podDisruptionBudget.enabled -- create a PodDisruptionBudget
   enabled: false
+  # podDisruptionBudget.minAvailable -- minimum pods that must remain available
   minAvailable: 1
 
 networkPolicy:
+  # networkPolicy.enabled -- create a NetworkPolicy restricting traffic to port 8000 ingress and port 5432/53 egress
   enabled: false
 
+# podSecurityContext -- pod-level security context
 podSecurityContext:
   runAsNonRoot: true
   fsGroup: 1000
 
+# containerSecurityContext -- container-level security context
 containerSecurityContext:
   runAsUser: 1000
   runAsGroup: 1000
@@ -75,13 +107,20 @@ containerSecurityContext:
     drop:
       - ALL
 
+# terminationGracePeriodSeconds -- time Kubernetes waits for the pod to shut down gracefully
 terminationGracePeriodSeconds: 60
 
 serviceAccount:
+  # serviceAccount.create -- create a dedicated ServiceAccount
   create: true
+  # serviceAccount.name -- override the ServiceAccount name (defaults to fullname)
   name: ""
+  # serviceAccount.annotations -- additional ServiceAccount annotations (e.g. for IAM roles)
   annotations: {}
 
+# nodeSelector -- node labels for pod scheduling
 nodeSelector: {}
+# tolerations -- tolerations for pod scheduling
 tolerations: []
+# affinity -- affinity rules for pod scheduling
 affinity: {}
