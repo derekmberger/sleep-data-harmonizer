@@ -253,6 +253,10 @@ tests/
 uv sync --all-groups
 ```
 
+### Credentials
+
+All connection strings and passwords in this repository (`docker-compose.yml`, `alembic.ini`, Helm `values.yaml`) use `postgres:postgres` defaults. This is intentional — the project is a demonstration/mock application, not a production service. In a production context, credentials would be injected via environment variables (`SH_DATABASE_URL`) or Kubernetes secrets (`existingSecret` in the Helm chart).
+
 ### Database
 
 Create the database and run migrations:
