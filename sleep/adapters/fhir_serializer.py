@@ -31,6 +31,17 @@ def sleep_day_to_fhir_observation(sleep_day: SleepDay) -> dict[str, Any]:
     observation: dict[str, Any] = {
         "resourceType": "Observation",
         "id": str(sleep_day.id),
+        "meta": {"lastUpdated": sleep_day.updated_at.isoformat()},
+        "identifier": [
+            {
+                "system": f"urn:sleep-harmonizer:{sleep_day.source.value}",
+                "value": sleep_day.source_record_id,
+            },
+            {
+                "system": "urn:sleep-harmonizer:fingerprint",
+                "value": sleep_day.fingerprint,
+            },
+        ],
         "status": "final",
         "category": [
             {
@@ -54,6 +65,7 @@ def sleep_day_to_fhir_observation(sleep_day: SleepDay) -> dict[str, Any]:
             "text": "Sleep observation from wearable device",
         },
         "subject": {"reference": f"Patient/{sleep_day.patient_id}"},
+        "issued": sleep_day.ingested_at.isoformat(),
         "component": [],
     }
 
