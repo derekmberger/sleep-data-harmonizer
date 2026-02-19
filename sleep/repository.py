@@ -10,7 +10,7 @@ from datetime import date
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -304,8 +304,6 @@ class SleepDayRepository:
         self, key: str, status_code: int, response_body: dict
     ) -> None:
         """Mark an idempotency key as completed with the response."""
-        from sqlalchemy import update
-
         stmt = (
             update(IdempotencyKeyModel)
             .where(IdempotencyKeyModel.key == key)

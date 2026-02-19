@@ -19,6 +19,8 @@ class ValidationError:
 
 
 ALLOWED_SOURCES = {"oura", "withings"}
+_MAX_DAILY_MINUTES = 1440
+_STAGE_SUM_TOLERANCE = 1.05
 
 
 def validate_sleep_record(record: dict[str, Any]) -> list[ValidationError]:
@@ -36,7 +38,9 @@ def validate_sleep_record(record: dict[str, Any]) -> list[ValidationError]:
 
     # Rule 2: Sleep duration range [0, 1440]
     total = record.get("total_sleep_minutes")
-    if total is not None and (not isinstance(total, (int, float)) or total < 0 or total > 1440):
+    if total is not None and (
+        not isinstance(total, (int, float)) or total < 0 or total > _MAX_DAILY_MINUTES
+    ):
         errors.append(
             ValidationError("total_sleep_minutes", "range", "sleep_duration_out_of_range", total)
         )
@@ -58,7 +62,11 @@ def validate_sleep_record(record: dict[str, Any]) -> list[ValidationError]:
         for f in ("deep_sleep_minutes", "light_sleep_minutes", "rem_sleep_minutes", "awake_minutes")
     ]
     stage_sum = sum(stages)
-    if total is not None and isinstance(total, (int, float)) and stage_sum > total * 1.05:
+    if (
+        total is not None
+        and isinstance(total, (int, float))
+        and stage_sum > total * _STAGE_SUM_TOLERANCE
+    ):
         errors.append(
             ValidationError(
                 "stage_sum",
@@ -90,7 +98,7 @@ def validate_sleep_record(record: dict[str, Any]) -> list[ValidationError]:
     # Rule 8: Known source
     source = record.get("source")
     if source:
-        source_val = source.value if hasattr(source, "value") else source
+        source_val = getattr(source, "value", source)
         if source_val not in ALLOWED_SOURCES:
             errors.append(ValidationError("source", "known_source", "unknown_source", source_val))
 

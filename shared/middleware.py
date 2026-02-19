@@ -1,10 +1,11 @@
 """FastAPI middleware for request ID injection and error handling."""
 
+from collections.abc import Callable
 from contextvars import ContextVar
 from uuid import uuid4
 
 import structlog
-from fastapi import Request
+from fastapi import Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -22,7 +23,9 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     Default format: UUID v4.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Callable[..., Response]]
+    ):
         rid = request.headers.get("X-Request-ID", str(uuid4()))
         request_id_var.set(rid)
         structlog.contextvars.bind_contextvars(request_id=rid)

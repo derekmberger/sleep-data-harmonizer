@@ -7,10 +7,15 @@ Endpoints:
 - GET  /api/v1/patients/{id}/sleep/provenance
 """
 
+from __future__ import annotations
+
 import time
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from sleep.domain.orm import SleepDayModel
 
 from fastapi import APIRouter, Depends, Header, Query, Response
 from pydantic import BaseModel, Field
@@ -55,7 +60,7 @@ def _meta() -> dict[str, Any]:
     }
 
 
-def _model_to_dict(row) -> dict[str, Any]:
+def _model_to_dict(row: SleepDayModel) -> dict[str, Any]:
     """Convert a SleepDayModel ORM row to an API response dict."""
     return {
         "id": str(row.id),
